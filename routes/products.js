@@ -1,12 +1,38 @@
 const express = require('express');
 const router = express.Router();
-// const { Router } = require('express');
 const Product = require('../models/product');
 const mongoose = require('mongoose');
+const multer = require('multer');
 
+// 
+const serverStorage = multer.diskStorage({
+    destination: ( req, file, callback ) => {
+        callback( null, './uploads/' );
+    },
+    filename: ( req, file, callback ) => {
+        callback( null, new Date().toISOString() + file.originalname )
+    },
+});
+const ImageFilter = ( req, file, callback ) => {
+    //reject file
+    if ( file.minetype === 'image/jpeg' || file.minetype === 'image/png' ) {
+        callback( null, true );
+    } else {
+        callback( new Error('Immage format is not supported.'), false );
+    }
+};
+const upload = multer({  //defines destination and properties where and how to upload
+    storage: serverStorage,
+    limit: {
+        fileSize: 1024*1024*5  // sets the max file size limit to 5MB
+    },
+    fileFilter : ImageFilter
+});
+
+// ROUTES
 router.get('/', (req, res, next) => {
     Product.find()
-        .select('name price _id')
+        .select('name price _id productImage')
         .exec()
         .then( dbResponse => {
             const response = {
@@ -16,6 +42,7 @@ router.get('/', (req, res, next) => {
                         name: doc.name,
                         price: doc.price,
                         _id: doc._id,
+                        productImage: doc.productImage,
                         request: {
                             type: 'GET',
                             url: 'http://localhost:1234/products/' + doc._id
@@ -31,11 +58,12 @@ router.get('/', (req, res, next) => {
         });
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', upload.single('productImage'), (req, res, next) => {
     const product = new Product({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
-        price: req.body.price
+        price: req.body.price,
+        productImage: req.file.path
     });
     product.save()
         .then( response => {
@@ -61,7 +89,7 @@ router.post('/', (req, res, next) => {
 router.get('/:productId', (req, res, next) => {
     const id = req.params.productId;
     Product.findById(id)
-        .select('name price _id')
+        .select('name price _id productImage')
         .exec()
         .then( response => {
             if ( response ) {

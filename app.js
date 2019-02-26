@@ -17,6 +17,7 @@ mongoose.connect(
 
 // Middleware definition
 app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads')); // makes folder 'uploads' staticly public and accessible
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
