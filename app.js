@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 //Modules & Models imports
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
+const userRoutes = require('./routes/users');
 
 // Connect to MongoDB
 mongoose.connect(
@@ -41,6 +42,7 @@ app.use( (req, res, next) => {
 // Routes responsible for handling requests
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/users', userRoutes);
 
 // handles error if the is no handle for requested API
 app.use( (req, res, next) => {

@@ -2,6 +2,7 @@
     "env": {
         "MONGO_USER" : "TODAdmin",
         "MONGO_PASSWORD": "ExWVwusFwS0fNDso",
-        "MONGO_DB": "NODE_REST_API"
+        "MONGO_DB": "NODE_REST_API",
+        "JWT_KEY": "SecretKeyToAPI" 
     } 
 }

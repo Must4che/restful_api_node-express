@@ -3,8 +3,9 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const Order = require('../models/order');
 const Product = require('../models/product');
+const checkAuth = require('../auth/check-auth');
 
-router.get('/', (req, res, next) => {
+router.get('/', checkAuth, (req, res, next) => {
     Order.find()
         .select('product quantity _id')
         .populate('product', 'name price') // without populate there will be only _id populated not the whole product
@@ -30,7 +31,7 @@ router.get('/', (req, res, next) => {
         });
 });
 
-router.post('/', (req, res, next) => {
+router.post('/', checkAuth, (req, res, next) => {
     Product.findById(req.body.productId)
         .then( product => {
             if ( !product ) {
@@ -63,7 +64,7 @@ router.post('/', (req, res, next) => {
     });     
 });
 
-router.get('/:orderId', (req, res, next) => {
+router.get('/:orderId', checkAuth, (req, res, next) => {
     Order.findById(req.params.orderId)
         .populate('product', 'name price')
         .exec()
@@ -84,7 +85,7 @@ router.get('/:orderId', (req, res, next) => {
         });
 });
 
-router.delete('/:orderId', (req, res, next) => {
+router.delete('/:orderId', checkAuth, (req, res, next) => {
     Order.remove({ _id: req.params.orderId })
         .exec()
         .then( response => {
