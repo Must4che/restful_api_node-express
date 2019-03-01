@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 //Modules & Models imports
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
+const userRoutes = require('./routes/users');
 
 // Connect to MongoDB
 mongoose.connect(
@@ -17,6 +18,7 @@ mongoose.connect(
 
 // Middleware definition
 app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads')); // makes folder 'uploads' staticly public and accessible
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
@@ -40,6 +42,7 @@ app.use( (req, res, next) => {
 // Routes responsible for handling requests
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/users', userRoutes);
 
 // handles error if the is no handle for requested API
 app.use( (req, res, next) => {
