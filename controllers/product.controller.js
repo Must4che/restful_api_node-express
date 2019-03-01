@@ -1,84 +1,69 @@
+//@ts-check
 const mongoose = require('mongoose');
 const Product = require('../models/product');
 
-exports.getAllProducts = (req, res, next) => {
-    Product.find()
-        .select('name price _id productImage')
-        .exec()
-        .then( dbResponse => {
-            const response = {
-                count: dbResponse.length,
-                products: dbResponse.map( doc => {
-                    return {
-                        name: doc.name,
-                        price: doc.price,
-                        _id: doc._id,
-                        productImage: doc.productImage,
-                        request: {
-                            type: 'GET',
-                            url: 'http://localhost:1234/products/' + doc._id
-                        }
-                    }
-                })
-            };
-            res.status(200).json(response);
-        })
-        .catch( err => {
-            console.log(err);
-            res.status(500).json({ error: err });
-        });
-}
-
-exports.getProductById = (req, res, next) => {
-    const id = req.params.productId;
-    Product.findById(id)
-        .select('name price _id productImage')
-        .exec()
-        .then( response => {
-            if ( response ) {
-                res.status(200).json({
-                    product: response,
+exports.getAllProducts = async (req, res, next) => {
+    try {
+        const products = await Product.find().select('name price _id productImage').exec();
+        const response = {
+            count: products.length,
+            products: products.map( prod => {
+                return {
+                    name: prod.name,
+                    price: prod.price,
+                    _id: prod._id,
+                    productImage: prod.productImage,
                     request: {
                         type: 'GET',
-                        url: 'http://localhost:1234/products/' + response._id
+                        url: 'http://localhost:1234/products/' + prod._id
                     }
-                });
-            } else {
-                res.status(404).json({message: `No valid entry found for id: ${id}`});
-            }
-        })
-        .catch( err => {
-            console.log(err);
-            res.status(500).json({ error: err });
-        });
+                }
+            })
+        };
+        res.status(200).json(response);
+    } catch( err ) {
+        res.status(500).json({ error: err });
+    }
 }
 
-exports.createNewProduct = (req, res, next) => {
-    const product = new Product({
+exports.getProductById = async (req, res, next) => {
+    try {
+        const product = await Product.findById(req.params.productId).select('name price _id productImage').exec();
+        if ( product ) {
+            res.status(200).json({
+                product: product,
+                request: {
+                    type: 'GET',
+                    url: 'http://localhost:1234/products/' + product._id
+                }
+            });
+        } else {
+            res.status(404).json({message: `No valid entry found for id: ${req.params.productId}`});
+        }
+    } catch( err ) {
+        res.status(500).json({ error: err });
+    }
+}
+
+exports.createNewProduct = async (req, res, next) => {
+    const newProduct = new Product({
         _id: new mongoose.Types.ObjectId(),
         name: req.body.name,
         price: req.body.price,
-        productImage: req.file.path
-    });
-    product.save()
-        .then( response => {
-            res.status(200).json({
-                message: 'Created product successfully',
-                createdProduct: {
-                    name: response.name,
-                    price: response.price,
-                    _id: response._id,
-                    request: {
-                        type: 'GET',
-                        url: 'http://localhost:1234/products/' + response._id
-                    }
-                }
-            });
-        })
-        .catch( err => {
-            console.log(err);
-            res.status(200).json({ error: err });
+        productImage: req.file.path });
+    try {
+        const product = await newProduct.save();
+        res.status(200).json({
+            message: 'Created product successfully',
+            newProduct: product,
+            request: {
+                type: 'GET',
+                url: 'http://localhost:1234/products/' + product._id
+            }
         });
+    } catch( err ) {
+        res.status(200).json({ error: err });
+    }
 }
 
 exports.updateProductById = (req, res, next) => {
@@ -124,4 +109,10 @@ exports.deleteProductById = (req, res, next) => {
             console.log(err);
             res.status(500).json({error: err});
         });
+}
+
+try {
+
+} catch( err ) {
+    
 }

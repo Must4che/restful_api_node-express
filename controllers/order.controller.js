@@ -1,3 +1,4 @@
+//@ts-check
 const mongoose = require('mongoose');
 const Order = require('../models/order');
 const Product = require('../models/product');
@@ -87,7 +88,7 @@ exports.deleteOrderById = (req, res, next) => {
         .exec()
         .then( response => {
             res.status(200).json({
-                message: `Order with Id: ${response._id} has been deleted`,
+                message: `Order with Id: ${req.params.orderId} has been deleted`,
                 request: {
                     type: 'GET',
                     url: 'http://localhost:1234/orders/',
