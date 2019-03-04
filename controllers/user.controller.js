@@ -9,19 +9,14 @@ exports.createNewUser = async ( req, res, next ) => {
     try {
         const user  = await User.findOne({ email: req.body.email }).exec();
         if ( !user ) {
-            await bcrypt.hash(req.body.password, 10, async (err, hash) => { // second argument is number of SALT cycles 10=considered safe
-                if ( !err ) {
-                    const newUser = new User({
-                        _id: new mongoose.Types.ObjectId(),
-                        email: req.body.email,
-                        password: hash
-                    });
-                    const response = await newUser.save();
-                    res.status(200).json({ message: `User ${req.body.email} has been created.` });
-                } else {
-                    return res.status(500).json({ error: err });
-                }
+            const hash = await bcrypt.hash( req.body.password.toString(), 10 );
+            const newUser = new User({
+                _id: new mongoose.Types.ObjectId(),
+                email: req.body.email,
+                password: hash
             });
+            await newUser.save();
+            res.status(200).json({ message: `User ${req.body.email} has been created.` });
         } else {
             return res.status(409).json({ message: `User with email adress "${req.body.email}" already exists.`});
         }
@@ -36,7 +31,7 @@ exports.userLogin = async ( req, res, next ) => {
         if ( !user ) {
             return res.status(401).json({ message: 'Auth failed.'});
         }
-        await bcrypt.compare( req.body.password, user.password, ( err, response ) => {
+        bcrypt.compare( req.body.password, user.password, ( err, response ) => {
             if ( !response ) {
                 return res.status(401).json({ message: 'Auth failed.'});
             }
@@ -65,7 +60,7 @@ exports.userLogin = async ( req, res, next ) => {
 
 exports.getUserById = async (req, res, next) => {
     try {
-        const user = await User.findById(req.params.productId).select('email avatarURL _id').exec();
+        const user = await User.findById(req.params.userId).select('email avatarURL _id').exec();
         if ( user ) {
             res.status(200).json({
                 user: user,
@@ -83,20 +78,28 @@ exports.getUserById = async (req, res, next) => {
 }
 
 exports.updateUserById = async (req, res, next) => {
-    const updateOptions = {};
-    for ( const op of req.body ) {
-        updateOptions[op.propName] = op.value;
-    }
     try {
-        const user = await User.update({ _id: req.params.userId }, { $set: updateOptions }).exec();
-        res.status(200).json({
-            message: `Updated user with ID: ${user._id}`,
-            user: user,
-            request: {
-                type: 'GET',
-                url: `http://localhost:1234/users/${user._id}`
+        const user = await User.findById(req.params.userId).exec();
+        if ( user._id == req.userData.userId ) {
+            const updateOps = {};
+            for ( const op of req.body ) {
+                updateOps[op.propName] = op.value;
             }
-        });
+            if ( updateOps.password ) {
+                updateOps.password = await bcrypt.hash( updateOps.password.toString(), 10 );
+            }
+            const toBeUpdated = await User.findOneAndUpdate({ _id: req.params.userId }, { $set: updateOps }).exec();
+            res.status(200).json({
+                message: `Updated user with ID: ${req.params.userId}`,
+                user: toBeUpdated,
+                request: {
+                    type: 'GET',
+                    url: `http://localhost:1234/users/${req.params.userId}`
+                }
+            });
+        } else {
+            throw new Error('To update this profile you must me Logged In.'); 
+        }
     } catch( err ) {
         res.status(500).json({ error: err });
     }
@@ -104,7 +107,7 @@ exports.updateUserById = async (req, res, next) => {
 
 exports.deleteUserById = async ( req, res, next ) => {
     try {
-        await User.remove({ _id: req.params.userId }).exec();
+        await User.deleteOne({ _id: req.params.userId }).exec();
         res.status(200).json({ message: 'User has been deleted.' });
     } catch( err ) {
         res.status(500).json({ error: err });
