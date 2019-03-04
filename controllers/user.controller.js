@@ -9,7 +9,7 @@ exports.createNewUser = async ( req, res, next ) => {
     try {
         const user  = await User.findOne({ email: req.body.email }).exec();
         if ( !user ) {
-            bcrypt.hash(req.body.password, 10, async (err, hash) => { // second argument is number of SALT cycles 10=considered safe
+            await bcrypt.hash(req.body.password, 10, async (err, hash) => { // second argument is number of SALT cycles 10=considered safe
                 if ( !err ) {
                     const newUser = new User({
                         _id: new mongoose.Types.ObjectId(),
@@ -17,7 +17,7 @@ exports.createNewUser = async ( req, res, next ) => {
                         password: hash
                     });
                     const response = await newUser.save();
-                    res.status(200).json({ message: `User ${user.email} has been created.` });
+                    res.status(200).json({ message: `User ${req.body.email} has been created.` });
                 } else {
                     return res.status(500).json({ error: err });
                 }
@@ -32,7 +32,7 @@ exports.createNewUser = async ( req, res, next ) => {
 
 exports.userLogin = async ( req, res, next ) => {
     try {
-        const user = await User.find({ email: req.body.email }).exec();
+        const user = await User.find({ email: req.body.email });
         if ( user.length < 1 ) {
             return res.status(401).json({ message: 'Auth failed.'});
         }
