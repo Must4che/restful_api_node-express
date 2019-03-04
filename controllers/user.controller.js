@@ -32,19 +32,19 @@ exports.createNewUser = async ( req, res, next ) => {
 
 exports.userLogin = async ( req, res, next ) => {
     try {
-        const user = await User.find({ email: req.body.email });
-        if ( user.length < 1 ) {
+        const user  = await User.findOne({ email: req.body.email }).exec();
+        if ( !user ) {
             return res.status(401).json({ message: 'Auth failed.'});
         }
-        bcrypt.compare( req.body.pasword, user[0].password, ( err, response ) => {
+        await bcrypt.compare( req.body.password, user.password, ( err, response ) => {
             if ( !response ) {
                 return res.status(401).json({ message: 'Auth failed.'});
             }
             if ( response ) {
                 const createToken = jwt.sign(
                     {
-                        email: user[0].email,
-                        userId: user[0]._id
+                        email: user.email,
+                        userId: user._id
                     },
                     process.env.JWT_KEY,
                     {
