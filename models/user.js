@@ -13,7 +13,9 @@ const userSchema = mongoose.Schema({
         required: true
     },
     avatarURL: {
-        type: String
+        type: String,
+        required: false,
+        unique: true
     }
 });
 

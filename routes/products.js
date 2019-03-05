@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
 const checkAuth = require('../middleware/check-auth');
 const ProductController = require('../controllers/product.controller');
 
 // Storage definition
 const sd = require('../middleware/storage-definition');
-const saveFileAs = sd.defineStorage( null, (new Date().toISOString() + '_') );
+const saveFileAs = sd.defineStorage();
 
 // ROUTES
 router.get( '/', ProductController.getAllProducts );

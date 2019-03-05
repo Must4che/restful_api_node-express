@@ -13,7 +13,8 @@ exports.createNewUser = async ( req, res, next ) => {
             const newUser = new User({
                 _id: new mongoose.Types.ObjectId(),
                 email: req.body.email,
-                password: hash
+                password: hash,
+                avatarURL: ''
             });
             await newUser.save();
             res.status(200).json({ message: `User ${req.body.email} has been created.` });
@@ -58,6 +59,32 @@ exports.userLogin = async ( req, res, next ) => {
     }
 }
 
+exports.uploadImageById = async ( req, res, next ) => {
+    try {
+        if ( req.file.path ) {
+            const user = await User.findById(req.params.userId).exec();
+            if ( user._id == req.userData.userId ) {
+                const toBeUpdated = await User.findOneAndUpdate({ _id: req.params.userId }, { avatarURL: req.file.path }).exec();
+                res.status(200).json({
+                    message: `Updated user with ID: ${req.params.userId}`,
+                    updatedUser: toBeUpdated,
+                    request: {
+                        type: 'GET',
+                        url: `http://localhost:1234/users/${req.params.userId}`
+                    }
+                });
+            } else {
+                return res.status(401).json({ message: 'Auth failed.'});
+            }
+        } else {
+            return res.status(404).json({ message: 'File not found.'});
+        }
+    } catch( err ) {
+        console.log(err);
+        res.status(500).json({ error: err });
+    } 
+}
+
 exports.getUserById = async (req, res, next) => {
     try {
         const user = await User.findById(req.params.userId).select('email avatarURL _id').exec();
@@ -91,14 +118,14 @@ exports.updateUserById = async (req, res, next) => {
             const toBeUpdated = await User.findOneAndUpdate({ _id: req.params.userId }, { $set: updateOps }).exec();
             res.status(200).json({
                 message: `Updated user with ID: ${req.params.userId}`,
-                user: toBeUpdated,
+                updatedUser: toBeUpdated,
                 request: {
                     type: 'GET',
                     url: `http://localhost:1234/users/${req.params.userId}`
                 }
             });
         } else {
-            throw new Error('To update this profile you must me Logged In.'); 
+            return res.status(401).json({ message: 'Auth failed.'});
         }
     } catch( err ) {
         res.status(500).json({ error: err });
