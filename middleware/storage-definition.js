@@ -1,8 +1,6 @@
 const multer = require('multer');
 
-exports.defineStorage = ( path = './uploads/',
-                          pref = (new Date().toISOString() + '_'),
-                          fileTypes = ['image/jpeg', 'image/png'],
+exports.defineStorage = ( path = 'uploads/',
                           definedSize = 5242880   // equals to 5MB
 ) => {
 
@@ -11,18 +9,23 @@ exports.defineStorage = ( path = './uploads/',
             callback( null, path );
         },
         filename: ( req, file, callback ) => {
-            const prefix =  `${pref}_` + file.originalname;
-            return callback( null, prefix );
+            if ( req.userData.userId ) {
+                const fileName =  req.userData.userId + file.originalname.split('.')[1];
+                return callback( null, fileName );
+            } else {
+                const defaultFileName = new Date().getTime() + '_' + file.originalname;
+                return callback( null, defaultFileName );
+            }
         },
     });
 
     const ImageFilter = ( req, file, callback ) => {
-        if ( fileTypes.includes(file.minetype) ) {
+        if ( file.originalname.match(/\.(jpg|jpeg|png|gif)$/) ) {
             //save file
             callback( null, true );
         } else {
             //reject file
-            callback( new Error('Immage format is not supported.'), false );
+            callback( new Error('Image format is not supported.'), false );
         }
     };
 

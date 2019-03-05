@@ -1,6 +1,6 @@
 //@ts-check
 const mongoose = require('mongoose');
-const Product = require('../models/product');
+const Product = require('../models/product.model');
 
 exports.getAllProducts = async (req, res, next) => {
     try {
@@ -46,12 +46,12 @@ exports.getProductById = async (req, res, next) => {
 }
 
 exports.createNewProduct = async (req, res, next) => {
-    const newProduct = new Product({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        price: req.body.price,
-        productImage: req.file.path });
     try {
+        const newProduct = new Product({
+            _id: new mongoose.Types.ObjectId(),
+            name: req.body.name,
+            price: req.body.price,
+            productImage: req.file.path });
         const product = await newProduct.save();
         res.status(200).json({
             message: 'Created product successfully',
@@ -62,57 +62,43 @@ exports.createNewProduct = async (req, res, next) => {
             }
         });
     } catch( err ) {
-        res.status(200).json({ error: err });
+        res.status(500).json({ error: err });
     }
 }
 
-exports.updateProductById = (req, res, next) => {
-    const id = req.params.productId;
-    const updateOps = {};
-    for ( const ops of req.body ) {
-        updateOps[ops.propName] = ops.value;
+exports.updateProductById = async (req, res, next) => {
+    try {
+        const updateOps = {};
+        for ( const ops of req.body ) {
+            updateOps[ops.propName] = ops.value;
+        }
+        const toBeUpdated = await Product.findOneAndUpdate({ _id: req.params.productId }, { $set: updateOps }).exec();
+        res.status(200).json({
+            message: `Updated product with ID: ${req.params.productId}`,
+            updatedProduct: toBeUpdated,
+            request: {
+                type: 'GET',
+                url: `http://localhost:1234/products/'${req.params.productId}`
+            }
+        });
+    } catch( err ) {
+        res.status(500).json({ error: err });
     }
-    Product.update({ _id: id }, { $set: updateOps })
-        .exec()
-        .then( response => {
-            console.log(response);
-            res.status(200).json({
-                message: `Updated product with ID: ${id}`,
-                request: {
-                    type: 'GET',
-                    url: 'http://localhost:1234/products/' + id
-                }
-            });
-        })
-        .catch( err => {
-            console.log(err);
-            res.status(500).json({ error: err });
-        });
 }
 
-exports.deleteProductById = (req, res, next) => {
-    const id = req.params.productId
-    Product.remove({ _id: id })
-        .exec()
-        .then( response => {
-            console.log(response);
-            res.status(200).json({
-                message: `Deleted product with ID: ${id}`,
-                request: {
-                    type: 'POST',
-                    url: 'http://localhost:1234/products/',
-                    body: { name: 'Enter_product_name_here', price: 'Enter_product_price_here' }
-                }
-            });
-        })
-        .catch( err => {
-            console.log(err);
-            res.status(500).json({error: err});
+exports.deleteProductById = async (req, res, next) => {
+    try {
+        const toBeDeleted = await Product.deleteOne({ _id: req.params.productId }).exec();
+        res.status(200).json({
+            message: `Deleted product with ID: ${req.params.productId}`,
+            deletedProduct: toBeDeleted,
+            request: {
+                type: 'POST',
+                url: 'http://localhost:1234/products/',
+                body: { name: 'Enter_product_name_here', price: 'Enter_product_price_here' }
+            }
         });
-}
-
-try {
-
-} catch( err ) {
-    
+    } catch( err ) {
+        res.status(500).json({error: err});
+    }
 }
