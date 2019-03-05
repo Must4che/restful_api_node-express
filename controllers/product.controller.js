@@ -1,6 +1,6 @@
 //@ts-check
 const mongoose = require('mongoose');
-const Product = require('../models/product');
+const Product = require('../models/product.model');
 
 exports.getAllProducts = async (req, res, next) => {
     try {

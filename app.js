@@ -6,9 +6,9 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 //Modules & Models imports
-const productRoutes = require('./routes/products');
-const orderRoutes = require('./routes/orders');
-const userRoutes = require('./routes/users');
+const productRoutes = require('./routes/products.router');
+const orderRoutes = require('./routes/orders.router');
+const userRoutes = require('./routes/users.router');
 
 // Connect to MongoDB
 mongoose.connect(
