@@ -17,8 +17,13 @@ mongoose.connect(
     { useNewUrlParser: true }
 );
 
-// Middleware definition
-app.use(helmet());
+// Security Middleware definition
+app.use(helmet.hsts());
+app.use(helmet.cacheControl());
+app.use(helmet.crossdomain());
+app.use(helmet.hidePoweredBy());
+
+// Other Middleware definition
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads')); // makes folder 'uploads' staticly public and accessible
 app.use(bodyParser.urlencoded({extended: false}));
