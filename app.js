@@ -1,6 +1,7 @@
 // Node Packages
 const express = require('express');
 const app = express();
+const helmet = require('helmet');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -17,6 +18,7 @@ mongoose.connect(
 );
 
 // Middleware definition
+app.use(helmet());
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads')); // makes folder 'uploads' staticly public and accessible
 app.use(bodyParser.urlencoded({extended: false}));
