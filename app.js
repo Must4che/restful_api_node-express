@@ -1,6 +1,7 @@
 // Node Packages
 const express = require('express');
 const app = express();
+const helmet = require('helmet');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -16,7 +17,13 @@ mongoose.connect(
     { useNewUrlParser: true }
 );
 
-// Middleware definition
+// Security Middleware definition
+app.use(helmet.hsts());
+app.use(helmet.cacheControl());
+app.use(helmet.crossdomain());
+app.use(helmet.hidePoweredBy());
+
+// Other Middleware definition
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads')); // makes folder 'uploads' staticly public and accessible
 app.use(bodyParser.urlencoded({extended: false}));

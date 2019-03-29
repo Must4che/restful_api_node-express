@@ -1,4 +1,4 @@
 /node_modules
-/avatars/*
-/uploads/*
+/avatars
+/uploads
 /credentials.json
