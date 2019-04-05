@@ -19,8 +19,8 @@ mongoose.connect(
 
 // Security Middleware definition
 app.use(helmet.hsts());
-app.use(helmet.cacheControl());
-app.use(helmet.crossdomain());
+app.use(helmet.noCache());
+app.use(helmet.permittedCrossDomainPolicies());
 app.use(helmet.hidePoweredBy());
 
 // Other Middleware definition
