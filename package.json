@@ -14,7 +14,7 @@
   "author": "Must4che",
   "license": "MIT",
   "dependencies": {
-    "bcrypt": "^3.0.4",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "helmet": "^3.16.0",
